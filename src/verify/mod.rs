@@ -1,4 +1,4 @@
-use crate::{Graph, VertexIndex};
+use crate::{EdgeIndex, Graph, VertexIndex};
 
 pub mod state;
 pub use state::*;
@@ -48,26 +48,36 @@ where
     VD::S: StateFinality,
     ED::S: PartialEq<state::EdgeState>,
 {
-    fn pop(&mut self) -> Option<Finality> {
+    fn backtrack(&mut self) -> Finality {
         if let Some(v) = self.stack.pop() {
+            println!("backtracked to {:?}", self.source);
+
             self.current -= 1;
             self.source = v;
-
-            println!("popped source: {:?}", self.source);
 
             return self.verify();
         }
 
-        None
+        println!("could not backtrack.");
+        Finality::Common
     }
 
-    pub fn verify(&mut self) -> Option<Finality> {
+    fn advance(&mut self, e: EdgeIndex, v: VertexIndex) -> Finality {
+        println!("advanced to {:?} passing by {:?}", v, e);
+
+        self.visited[*e] = true;
+
+        self.stack.push(self.source);
+        self.source = v;
+
+        self.current += 1;
+
+        return self.verify();
+    }
+
+    pub fn verify(&mut self) -> Finality {
         if self.current == self.target.len() {
-            println!(
-                "self.current == self.target.len(): {} {}",
-                self.current,
-                self.target.len()
-            );
+            println!("no more input");
 
             let finality = self.graph.vertices[self.source]
                 .data
@@ -75,30 +85,19 @@ where
                 .get_finality();
 
             return match finality {
-                Finality::Common => self.pop(),
-                Finality::Final => Some(finality),
+                Finality::Common => self.backtrack(),
+                Finality::Final => Finality::Final,
             };
         }
 
-        let successors = self.graph.successors(self.source);
-
-        for (e, v) in successors {
+        for (e, v) in self.graph.successors(self.source) {
             let edge = &self.graph.edges[*e];
 
             if edge.data.get_state() == self.target[self.current] && !self.visited[*e] {
-                self.visited[*e] = true;
-
-                self.current += 1;
-
-                self.stack.push(self.source);
-                self.source = v;
-
-                println!("source: {:?}", self.source);
-
-                return self.verify();
+                return self.advance(e, v);
             }
         }
 
-        self.pop()
+        self.backtrack()
     }
 }
