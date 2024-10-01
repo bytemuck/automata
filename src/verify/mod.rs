@@ -1,4 +1,4 @@
-use crate::{Graph, LocalEdgeIndex, VertexIndex};
+use crate::{Graph, VertexIndex};
 
 pub mod state;
 pub use state::*;
@@ -10,8 +10,12 @@ where
 {
     graph: &'graph Graph<VD, ED>,
     source: VertexIndex,
+
     target: &'graph [EdgeState],
-    current: LocalEdgeIndex,
+    current: usize,
+
+    visited: Vec<bool>,
+    stack: Vec<VertexIndex>,
 }
 
 impl<VD, ED> Graph<VD, ED>
@@ -28,7 +32,10 @@ where
             graph: self,
             source,
             target,
-            current: LocalEdgeIndex(0),
+            current: 0,
+
+            visited: vec![false; self.edges.len()],
+            stack: Vec::new(),
         }
     }
 }
@@ -41,24 +48,57 @@ where
     VD::S: StateFinality,
     ED::S: PartialEq<state::EdgeState>,
 {
-    pub fn verify(&mut self) -> Finality {
-        while *self.current < self.target.len() {
-            *self.current += 1;
-            println!("needs: {:?}", self.target[*self.current - 1]);
+    fn pop(&mut self) -> Option<Finality> {
+        if let Some(v) = self.stack.pop() {
+            self.current -= 1;
+            self.source = v;
 
-            let mut successors = self.graph.successors(self.source);
-            if let Some((_, v)) = successors.find(|(e, _)| {
-                self.graph.edges[*e].data.get_state() == self.target[*self.current - 1]
-            }) {
-                println!("found: {:?}", v);
+            println!("popped source: {:?}", self.source);
 
+            return self.verify();
+        }
+
+        None
+    }
+
+    pub fn verify(&mut self) -> Option<Finality> {
+        if self.current == self.target.len() {
+            println!(
+                "self.current == self.target.len(): {} {}",
+                self.current,
+                self.target.len()
+            );
+
+            let finality = self.graph.vertices[self.source]
+                .data
+                .get_state()
+                .get_finality();
+
+            return match finality {
+                Finality::Common => self.pop(),
+                Finality::Final => Some(finality),
+            };
+        }
+
+        let successors = self.graph.successors(self.source);
+
+        for (e, v) in successors {
+            let edge = &self.graph.edges[*e];
+
+            if edge.data.get_state() == self.target[self.current] && !self.visited[*e] {
+                self.visited[*e] = true;
+
+                self.current += 1;
+
+                self.stack.push(self.source);
                 self.source = v;
+
+                println!("source: {:?}", self.source);
+
+                return self.verify();
             }
         }
 
-        self.graph.vertices[*self.source]
-            .data
-            .get_state()
-            .get_finality()
+        self.pop()
     }
 }

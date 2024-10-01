@@ -12,10 +12,14 @@ fn main() -> Result<(), &'static str> {
     let v3 = graph.add_vertex(VertexState::Final);
 
     graph.add_edge(v0, v1, EdgeState::A);
+    graph.add_edge(v0, v2, EdgeState::A);
+
+    graph.add_edge(v1, v1, EdgeState::B);
     graph.add_edge(v1, v2, EdgeState::A);
+
     graph.add_edge(v2, v3, EdgeState::B);
 
-    let mut verify = graph.verify(v0, &[EdgeState::A, EdgeState::A, EdgeState::B]);
+    let mut verify = graph.verify(v0, &[EdgeState::A, EdgeState::B]);
 
     println!("{:?}", verify.verify());
 
