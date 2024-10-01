@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Display};
+
 use crate::{EdgeIndex, Graph, VertexIndex};
 
 pub mod state;
@@ -42,15 +44,15 @@ where
 
 impl<'graph, VD, ED> Verify<'graph, VD, ED>
 where
-    VD: State,
-    ED: State,
+    VD: State + Display,
+    ED: State + Display,
 
     VD::S: StateFinality,
     ED::S: PartialEq<state::EdgeState>,
 {
     fn backtrack(&mut self) -> Finality {
         if let Some(v) = self.stack.pop() {
-            println!("backtracked to {:?}", self.source);
+            println!("backtracked to {}", self.graph.vertices[self.source].data);
 
             self.current -= 1;
             self.source = v;
@@ -63,7 +65,10 @@ where
     }
 
     fn advance(&mut self, e: EdgeIndex, v: VertexIndex) -> Finality {
-        println!("advanced to {:?} passing by {:?}", v, e);
+        println!(
+            "advanced to {} passing by {}",
+            self.graph.vertices[v].data, self.graph.edges[e].data
+        );
 
         self.visited[*e] = true;
 
