@@ -1,18 +1,24 @@
-use std::ops::{Deref, Index, IndexMut};
+use std::ops::{Deref, DerefMut, Index, IndexMut};
 
-use super::{EdgeData, NodeData};
+use super::{Edge, Vertex};
 
-#[derive(Debug, Clone, Copy)]
-pub struct NodeIndex(pub usize);
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct VertexIndex(pub usize);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EdgeIndex(pub usize);
 
-impl Deref for NodeIndex {
+impl Deref for VertexIndex {
     type Target = usize;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for VertexIndex {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -24,29 +30,35 @@ impl Deref for EdgeIndex {
     }
 }
 
-impl<ND> Index<NodeIndex> for Vec<NodeData<ND>> {
-    type Output = NodeData<ND>;
+impl DerefMut for EdgeIndex {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
-    fn index(&self, index: NodeIndex) -> &Self::Output {
+impl<VD> Index<VertexIndex> for Vec<Vertex<VD>> {
+    type Output = Vertex<VD>;
+
+    fn index(&self, index: VertexIndex) -> &Self::Output {
         &self[*index]
     }
 }
 
-impl<ND> IndexMut<NodeIndex> for Vec<NodeData<ND>> {
-    fn index_mut(&mut self, index: NodeIndex) -> &mut Self::Output {
+impl<VD> IndexMut<VertexIndex> for Vec<Vertex<VD>> {
+    fn index_mut(&mut self, index: VertexIndex) -> &mut Self::Output {
         &mut self[*index]
     }
 }
 
-impl<ED> Index<EdgeIndex> for Vec<EdgeData<ED>> {
-    type Output = EdgeData<ED>;
+impl<ED> Index<EdgeIndex> for Vec<Edge<ED>> {
+    type Output = Edge<ED>;
 
     fn index(&self, index: EdgeIndex) -> &Self::Output {
         &self[*index]
     }
 }
 
-impl<ND> IndexMut<EdgeIndex> for Vec<EdgeData<ND>> {
+impl<ED> IndexMut<EdgeIndex> for Vec<Edge<ED>> {
     fn index_mut(&mut self, index: EdgeIndex) -> &mut Self::Output {
         &mut self[*index]
     }

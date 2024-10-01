@@ -1,43 +1,52 @@
 pub mod index;
 pub use index::*;
 
+pub mod local;
+pub use local::*;
+
 #[derive(Debug)]
-pub struct Graph<ND, ED> {
-    pub nodes: Vec<NodeData<ND>>,
-    pub edges: Vec<EdgeData<ED>>,
+pub struct Graph<VD, ED> {
+    pub vertices: Vec<Vertex<VD>>,
+    pub edges: Vec<Edge<ED>>,
 }
 
 #[derive(Debug)]
-pub struct NodeData<ND> {
-    pub targets: Vec<EdgeIndex>,
-    pub data: ND,
+pub struct Vertex<VD> {
+    pub edges: Vec<EdgeIndex>,
+    pub data: VD,
 }
 
 #[derive(Debug)]
-pub struct EdgeData<ED> {
-    pub target: NodeIndex,
+pub struct Edge<ED> {
+    pub next: VertexIndex,
+    pub previous: VertexIndex,
     pub data: ED,
 }
 
-impl<ND, ED> Graph<ND, ED> {
-    pub fn add_node(&mut self, data: ND) -> NodeIndex {
-        let index = NodeIndex(self.nodes.len());
-
-        self.nodes.push(NodeData {
-            targets: vec![],
+impl<VD, ED> Graph<VD, ED> {
+    pub fn add_vertex(&mut self, data: VD) -> VertexIndex {
+        self.vertices.push(Vertex {
+            edges: vec![],
             data,
         });
+
+        let length = self.vertices.len() - 1;
+        let index = VertexIndex(length);
 
         index
     }
 
-    pub fn add_edge(&mut self, source: NodeIndex, target: NodeIndex, data: ED) -> EdgeIndex {
-        let length = self.edges.len();
-        let index = EdgeIndex(length);
-        let node = &mut self.nodes[source];
+    pub fn add_edge(&mut self, source: VertexIndex, target: VertexIndex, data: ED) -> EdgeIndex {
+        self.edges.push(Edge {
+            next: target,
+            previous: source,
+            data,
+        });
 
-        self.edges.push(EdgeData { target, data });
-        node.targets.push(index);
+        let length = self.edges.len() - 1;
+        let index = EdgeIndex(length);
+
+        self.vertices[source].edges.push(index);
 
         index
     }

@@ -1,46 +1,58 @@
 use std::fmt::Debug;
 
-use automata::{Graph, NodeIndex};
+use automata::{Graph, VertexIndex};
 
-fn walk<ND, ED>(graph: &Graph<ND, ED>, source: NodeIndex, indent: usize, increment: usize)
-where
+fn walk<ND, ED>(
+    graph: &Graph<ND, ED>,
+    source: VertexIndex,
+    visited: &mut Vec<bool>,
+    indent: usize,
+    increment: usize,
+) where
     ND: Debug,
     ED: Debug,
 {
-    for n in graph.successors(source) {
-        println!("{:indent$}{:?}", "", graph.nodes[n].data);
-        walk(graph, n, indent + increment, increment);
+    for (e, n) in graph.successors(source) {
+        if visited[e.0] {
+            continue;
+        }
+
+        visited[e.0] = true;
+
+        println!("{:indent$}{:?}", "", (e, n));
+        walk(graph, n, visited, indent + increment, increment);
     }
 }
 
 fn main() -> Result<(), &'static str> {
     let mut graph: Graph<&'static str, &'static str> = Graph {
-        nodes: vec![],
+        vertices: vec![],
         edges: vec![],
     };
 
-    let node0 = graph.add_node("node0");
-    let node1 = graph.add_node("node1");
-    let node2 = graph.add_node("node2");
-    let node3 = graph.add_node("node3");
-    let node4 = graph.add_node("node4");
-    let node5 = graph.add_node("node5");
-    let node6 = graph.add_node("node6");
+    let v0 = graph.add_vertex("v0");
+    let v1 = graph.add_vertex("v1");
+    let v2 = graph.add_vertex("v2");
+    let v3 = graph.add_vertex("v3");
+    let v4 = graph.add_vertex("v4");
+    let v5 = graph.add_vertex("v5");
+    let v6 = graph.add_vertex("v6");
 
-    graph.add_edge(node0, node1, "edge00");
-    graph.add_edge(node0, node2, "edge01");
-    graph.add_edge(node0, node3, "edge02");
-    graph.add_edge(node0, node4, "edge03");
-    graph.add_edge(node1, node4, "edge04");
-    graph.add_edge(node1, node5, "edge05");
-    graph.add_edge(node1, node6, "edge06");
-    graph.add_edge(node2, node3, "edge07");
-    graph.add_edge(node3, node4, "edge08");
-    graph.add_edge(node4, node5, "edge09");
-    graph.add_edge(node5, node6, "edge10");
+    graph.add_edge(v0, v1, "e00");
+    graph.add_edge(v0, v2, "e01");
+    graph.add_edge(v0, v3, "e02");
+    graph.add_edge(v0, v4, "e03");
+    graph.add_edge(v1, v4, "e04");
+    graph.add_edge(v1, v5, "e05");
+    graph.add_edge(v1, v6, "e06");
+    graph.add_edge(v2, v3, "e07");
+    graph.add_edge(v3, v4, "e08");
+    graph.add_edge(v4, v5, "e09");
+    graph.add_edge(v5, v6, "e10");
+    graph.add_edge(v6, v0, "e11");
 
     println!("{:?}", graph);
-    walk(&graph, node0, 0, 2);
+    walk(&graph, v0, &mut vec![false; graph.edges.len()], 0, 2);
 
     Ok(())
 }
