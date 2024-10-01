@@ -1,5 +1,7 @@
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
+use crate::State;
+
 use super::{Edge, Vertex};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -36,7 +38,10 @@ impl DerefMut for LocalEdgeIndex {
     }
 }
 
-impl<VD> Index<LocalVertexIndex> for Vec<Vertex<VD>> {
+impl<VD> Index<LocalVertexIndex> for Vec<Vertex<VD>>
+where
+    VD: State,
+{
     type Output = Vertex<VD>;
 
     fn index(&self, index: LocalVertexIndex) -> &Self::Output {
@@ -44,13 +49,19 @@ impl<VD> Index<LocalVertexIndex> for Vec<Vertex<VD>> {
     }
 }
 
-impl<VD> IndexMut<LocalVertexIndex> for Vec<Vertex<VD>> {
+impl<VD> IndexMut<LocalVertexIndex> for Vec<Vertex<VD>>
+where
+    VD: State,
+{
     fn index_mut(&mut self, index: LocalVertexIndex) -> &mut Self::Output {
         &mut self[*index]
     }
 }
 
-impl<ED> Index<LocalEdgeIndex> for Vec<Edge<ED>> {
+impl<ED> Index<LocalEdgeIndex> for Vec<Edge<ED>>
+where
+    ED: State,
+{
     type Output = Edge<ED>;
 
     fn index(&self, index: LocalEdgeIndex) -> &Self::Output {
@@ -58,7 +69,10 @@ impl<ED> Index<LocalEdgeIndex> for Vec<Edge<ED>> {
     }
 }
 
-impl<ED> IndexMut<LocalEdgeIndex> for Vec<Edge<ED>> {
+impl<ED> IndexMut<LocalEdgeIndex> for Vec<Edge<ED>>
+where
+    ED: State,
+{
     fn index_mut(&mut self, index: LocalEdgeIndex) -> &mut Self::Output {
         &mut self[*index]
     }

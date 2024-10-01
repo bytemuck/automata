@@ -1,12 +1,21 @@
-use crate::{EdgeIndex, Graph, LocalEdgeIndex, VertexIndex};
+use crate::{EdgeIndex, Graph, LocalEdgeIndex, State, VertexIndex};
 
-pub struct Children<'graph, ND, ED> {
-    graph: &'graph Graph<ND, ED>,
-    parent: VertexIndex,
-    index: LocalEdgeIndex,
+#[derive(Debug)]
+pub struct Children<'graph, ND, ED>
+where
+    ND: State,
+    ED: State,
+{
+    pub graph: &'graph Graph<ND, ED>,
+    pub parent: VertexIndex,
+    pub index: LocalEdgeIndex,
 }
 
-impl<'graph, ND, ED> Iterator for Children<'graph, ND, ED> {
+impl<'graph, ND, ED> Iterator for Children<'graph, ND, ED>
+where
+    ND: State,
+    ED: State,
+{
     type Item = (EdgeIndex, VertexIndex);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -19,14 +28,18 @@ impl<'graph, ND, ED> Iterator for Children<'graph, ND, ED> {
                 *self.index += 1;
                 Some((
                     source_edges[*self.index - 1],
-                    graph_edges[source_edges[*self.index - 1]].next,
+                    graph_edges[source_edges[*self.index - 1]].vertex,
                 ))
             }
         }
     }
 }
 
-impl<ND, ED> Graph<ND, ED> {
+impl<ND, ED> Graph<ND, ED>
+where
+    ND: State,
+    ED: State,
+{
     pub fn successors(&self, source_vertex: VertexIndex) -> Children<ND, ED> {
         Children {
             graph: self,
