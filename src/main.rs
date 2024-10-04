@@ -66,14 +66,19 @@ fn main() -> Result<(), &'static str> {
     let v3 = graph.add_vertex(VertexData::new(VertexState::Final, "v3"));
 
     graph.add_edge(v0, v1, EdgeData::new(EdgeState::A, "e0"));
-    graph.add_edge(v0, v2, EdgeData::new(EdgeState::A, "e1"));
 
+    graph.add_edge(v1, v1, EdgeData::new(EdgeState::A, "e1"));
     graph.add_edge(v1, v1, EdgeData::new(EdgeState::B, "e2"));
-    graph.add_edge(v1, v2, EdgeData::new(EdgeState::A, "e3"));
+
+    graph.add_edge(v0, v2, EdgeData::new(EdgeState::A, "e3"));
 
     graph.add_edge(v2, v3, EdgeData::new(EdgeState::B, "e4"));
+    graph.add_edge(v2, v1, EdgeData::new(EdgeState::A, "e5"));
 
-    let mut verify = graph.verify(v0, &[EdgeState::A, EdgeState::B]);
+    let mut verify = graph.verify(
+        v0,
+        &[EdgeState::A, EdgeState::B, EdgeState::B, EdgeState::A],
+    );
 
     println!("{:?}", verify.verify());
 

@@ -16,8 +16,8 @@ where
     target: &'graph [EdgeState],
     current: usize,
 
-    visited: Vec<bool>,
-    stack: Vec<VertexIndex>,
+    backtracked: Vec<bool>,
+    stack: Vec<EdgeIndex>,
 }
 
 impl<VD, ED> Graph<VD, ED>
@@ -36,7 +36,7 @@ where
             target,
             current: 0,
 
-            visited: vec![false; self.edges.len()],
+            backtracked: vec![false; self.edges.len()],
             stack: Vec::new(),
         }
     }
@@ -51,11 +51,16 @@ where
     ED::S: PartialEq<state::EdgeState>,
 {
     fn backtrack(&mut self) -> Finality {
-        if let Some(v) = self.stack.pop() {
-            println!("backtracked to {}", self.graph.vertices[self.source].data);
+        if let Some(e) = self.stack.pop() {
+            self.backtracked[*e] = true;
 
             self.current -= 1;
-            self.source = v;
+            self.source = self.graph.edges[*e].source;
+
+            println!(
+                "backtracked to {} passing by {}",
+                self.graph.vertices[self.source].data, self.graph.edges[*e].data
+            );
 
             return self.verify();
         }
@@ -65,17 +70,15 @@ where
     }
 
     fn advance(&mut self, e: EdgeIndex, v: VertexIndex) -> Finality {
+        self.stack.push(e);
+        self.source = self.graph.edges[*e].vertex;
+
+        self.current += 1;
+
         println!(
             "advanced to {} passing by {}",
             self.graph.vertices[v].data, self.graph.edges[e].data
         );
-
-        self.visited[*e] = true;
-
-        self.stack.push(self.source);
-        self.source = v;
-
-        self.current += 1;
 
         return self.verify();
     }
@@ -98,7 +101,7 @@ where
         for (e, v) in self.graph.successors(self.source) {
             let edge = &self.graph.edges[*e];
 
-            if edge.data.get_state() == self.target[self.current] && !self.visited[*e] {
+            if edge.data.get_state() == self.target[self.current] && !self.backtracked[*e] {
                 return self.advance(e, v);
             }
         }

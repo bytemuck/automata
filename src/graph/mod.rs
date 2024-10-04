@@ -28,6 +28,7 @@ where
 #[derive(Debug)]
 pub struct Edge<ED: State> {
     pub vertex: VertexIndex,
+    pub source: VertexIndex,
     pub data: ED,
 }
 
@@ -50,6 +51,7 @@ where
 
     pub fn add_edge(&mut self, source: VertexIndex, target: VertexIndex, data: ED) -> EdgeIndex {
         self.edges.push(Edge {
+            source: source,
             vertex: target,
             data,
         });
